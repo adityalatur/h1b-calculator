@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The H-1B Cost Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .calculate-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .calculate-btn:active {
+            transform: translateY(0);
+        }
+        
+        .results {
+            display: none;
+            margin-top: 40px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .results.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .result-card {
+            background: white;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .result-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .result-card .icon {
+            font-size: 1.5em;
+        }
+        
+        .result-value {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: #d63031;
+            margin: 10px 0;
+        }
+        
+        .result-description {
+            color: #666;
+            line-height: 1.6;
+            margin-top: 10px;
+        }
+        
+        .total-cost {
+            background: linear-gradient(135deg, #d63031 0%, #e17055 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .total-cost h2 {
+            color: white;
+            margin-bottom: 10px;
+        }
+        
+        .total-cost .value {
+            font-size: 3.5em;
+            font-weight: 700;
+            margin: 20px 0;
+        }
+        
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .comparison-item {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .comparison-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .comparison-value {
+            font-size: 1.5em;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 30px;
+            background: #f8f9fa;
+            color: #666;
+        }
+        
+        .data-source {
+            font-size: 0.9em;
+            color: #999;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💼 The H-1B Cost Calculator</h1>
+            <p>What does your visa status actually cost?</p>
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <h2>Tell us about yourself</h2>
+                
+                <div class="form-group">
+                    <label for="employerType">Employer Type</label>
+                    <select id="employerType">
+                        <option value="">-- Select --</option>
+                        <option value="product">Product Company (Google, Amazon, Microsoft, etc.)</option>
+                        <option value="staffing">IT Staffing/Consulting Firm</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="salary">Your Current Annual Salary ($)</label>
+                    <input type="number" id="salary" placeholder="e.g., 85000" min="20000" max="500000">
+                </div>
+                
+                <div class="form-group">
+                    <label for="state">Work State</label>
+                    <select id="state">
+                        <option value="">-- Select --</option>
+                        <option value="CA">California</option>
+                        <option value="TX">Texas</option>
+                        <option value="NY">New York</option>
+                        <option value="NJ">New Jersey</option>
+                        <option value="WA">Washington</option>
+                        <option value="other">Other State</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="yearsOnH1B">Years on H-1B</label>
+                    <select id="yearsOnH1B">
+                        <option value="1">1 year</option>
+                        <option value="2">2 years</option>
+                        <option value="3">3 years</option>
+                        <option value="4">4 years</option>
+                        <option value="5">5 years</option>
+                        <option value="6">6+ years</option>
+                    </select>
+                </div>
+                
+                <button class="calculate-btn" onclick="calculateCost()">
+                    Calculate My H-1B Cost
+                </button>
+            </div>
+            
+            <div class="results" id="results">
+                <h2 style="color: #667eea; margin-bottom: 25px;">Your H-1B Hidden Costs</h2>
+                
+                <div class="result-card">
+                    <h3><span class="icon">💰</span> Dimension 1: The Salary Tax</h3>
+                    <div class="result-value" id="salaryTax">$0</div>
+                    <div class="result-description" id="salaryDesc"></div>
+                </div>
+                
+                <div class="result-card">
+                    <h3><span class="icon">🗺️</span> Dimension 2: Geographic Risk</h3>
+                    <div class="result-value" id="geoRisk">0%</div>
+                    <div class="result-description" id="geoDesc"></div>
+                </div>
+                
+                <div class="result-card">
+                    <h3><span class="icon">🏢</span> Dimension 3: Employer Concentration</h3>
+                    <div class="result-value" id="employerRisk">0%</div>
+                    <div class="result-description" id="employerDesc"></div>
+                </div>
+                
+                <div class="total-cost">
+                    <h2>Total Estimated Cost Over <span id="totalYears">6</span> Years</h2>
+                    <div class="value" id="totalCost">$0</div>
+                    <p>This is what your H-1B status has cost you in lost wages, opportunities, and flexibility.</p>
+                    
+                    <div class="comparison">
+                        <div class="comparison-item">
+                            <div class="comparison-label">Equivalent to</div>
+                            <div class="comparison-value" id="comparison1">0 years of salary</div>
+                        </div>
+                        <div class="comparison-item">
+                            <div class="comparison-label">Could have bought</div>
+                            <div class="comparison-value" id="comparison2">0 homes</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="data-source">
+                    <strong>Data Source:</strong> Analysis of 2.4 million H-1B Labor Condition Applications (2020-2024) from U.S. Department of Labor
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><strong>About this calculator:</strong> Built using real H-1B data from DOL filings.</p>
+            <p style="margin-top: 10px;">By [Your Name] | Data Journalism Portfolio</p>
+        </div>
+    </div>
+    
+    <script>
+        function calculateCost() {
+            // Get inputs
+            const employerType = document.getElementById('employerType').value;
+            const salary = parseInt(document.getElementById('salary').value);
+            const state = document.getElementById('state').value;
+            const years = parseInt(document.getElementById('yearsOnH1B').value);
+            
+            // Validation
+            if (!employerType || !salary || !state) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            // Data from analysis
+            const STAFFING_MEDIAN = 99050;
+            const PRODUCT_MEDIAN = 150000;
+            const WAGE_GAP = 50950;
+            
+            // Calculate Salary Tax
+            let salaryTax = 0;
+            let salaryDesc = '';
+            
+            if (employerType === 'staffing') {
+                const expectedSalary = PRODUCT_MEDIAN;
+                const gap = Math.max(0, expectedSalary - salary);
+                salaryTax = gap * years;
+                salaryDesc = `As a staffing firm employee, you're earning approximately $${gap.toLocaleString()} less per year than you would at a product company. Over ${years} years, that's a loss of $${salaryTax.toLocaleString()}.`;
+            } else if (employerType === 'product') {
+                salaryTax = 0;
+                salaryDesc = `Good news! Product company employees typically earn at the higher end of the H-1B wage spectrum. However, you still face mobility constraints that citizen workers don't experience.`;
+            } else {
+                const marketMedian = (STAFFING_MEDIAN + PRODUCT_MEDIAN) / 2;
+                const gap = Math.max(0, marketMedian - salary);
+                salaryTax = gap * years;
+                salaryDesc = `Compared to the market median of $${Math.round(marketMedian).toLocaleString()}, you may be earning $${gap.toLocaleString()} less per year. Over ${years} years, that's $${salaryTax.toLocaleString()}.`;
+            }
+            
+            // Calculate Geographic Risk
+            const topStateConcentration = 52.0;
+            let geoRisk = 0;
+            let geoDesc = '';
+            
+            if (['CA', 'TX', 'NY', 'NJ', 'WA'].includes(state)) {
+                geoRisk = topStateConcentration;
+                geoDesc = `You're in one of the top 5 H-1B states, which account for ${topStateConcentration}% of all jobs. While this means more opportunities, it also means higher cost of living and fierce competition.`;
+            } else {
+                geoRisk = 100 - topStateConcentration;
+                geoDesc = `You're outside the top 5 H-1B states, which means fewer job options (only ${(100-topStateConcentration).toFixed(1)}% of opportunities). If laid off, your 60-day grace period becomes even more challenging.`;
+            }
+            
+            // Calculate Employer Concentration Risk
+            let employerRisk = 0;
+            let employerDesc = '';
+            
+            if (employerType === 'staffing') {
+                employerRisk = 70;
+                employerDesc = `Staffing firms dominate the H-1B market but have higher denial rates and less job security. If your contract ends, you have 60 days to find a new sponsor—a critical risk.`;
+            } else if (employerType === 'product') {
+                employerRisk = 30;
+                employerDesc = `Product companies generally have more stable sponsorships, but you're still vulnerable. The top 100 employers control 30.6% of the market, creating concentration risk.`;
+            } else {
+                employerRisk = 50;
+                employerDesc = `Your employer category has moderate risk. Remember: changing jobs requires a new H-1B petition, creating a "golden handcuffs" effect that limits your career mobility.`;
+            }
+            
+            // Calculate Total
+            const totalCost = salaryTax;
+            
+            // Update UI
+            document.getElementById('salaryTax').textContent = `$${salaryTax.toLocaleString()}`;
+            document.getElementById('salaryDesc').textContent = salaryDesc;
+            
+            document.getElementById('geoRisk').textContent = `${geoRisk.toFixed(1)}%`;
+            document.getElementById('geoDesc').textContent = geoDesc;
+            
+            document.getElementById('employerRisk').textContent = `${employerRisk}%`;
+            document.getElementById('employerDesc').textContent = employerDesc;
+            
+            document.getElementById('totalYears').textContent = years;
+            document.getElementById('totalCost').textContent = `$${totalCost.toLocaleString()}`;
+            
+            // Comparisons
+            const yearsEquivalent = (totalCost / salary).toFixed(1);
+            const homesEquivalent = (totalCost / 400000).toFixed(1);
+            
+            document.getElementById('comparison1').textContent = `${yearsEquivalent} years of salary`;
+            document.getElementById('comparison2').textContent = `${homesEquivalent} homes`;
+            
+            // Show results
+            document.getElementById('results').classList.add('show');
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    </script>
+</body>
+</html>
